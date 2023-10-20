@@ -66,9 +66,31 @@ def data():
         'data.html',
         selected_data=selected_data.to_html(classes='table table-dark table-bordered table-hover'),
         column_descriptions=column_descriptions,
-        dataset_description=dataset_description
+        dataset_description=dataset_description,
+        columns=selected_data.columns
     )
 
+@app.route('/analysis', methods=['POST'])
+def analysys():
+    csv_data = load_data('neo.csv')
+
+    selected_columns = request.form.getlist('selected_columns')
+    selected_data = csv_data[selected_columns]
+
+    min_values = selected_data.min()
+    mean_values = selected_data.mean()
+    max_values = selected_data.max()
+
+    analysis_results = []
+    for col in selected_columns:
+        analysis_results.append({
+            'column_name': col,
+            'min_value': min_values[col],
+            'mean_value': mean_values[col],
+            'max_value': max_values[col]
+        })
+
+    return render_template('analysis.html', analysis_results=analysis_results)
 
 @app.route('/download', methods=['GET'])
 def download_file():

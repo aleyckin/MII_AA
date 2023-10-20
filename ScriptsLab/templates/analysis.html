@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Data Analysis</title>
+</head>
+<body>
+    <h1>Data Analysis Results</h1>
+    <table border="1">
+        <tr>
+            <th>Column Name</th>
+            <th>Minimum Value</th>
+            <th>Mean Value</th>
+            <th>Maximum Value</th>
+        </tr>
+        {% for result in analysis_results %}
+        <tr>
+            <td>{{ result.column_name }}</td>
+            <td>{{ result.min_value }}</td>
+            <td>{{ result.mean_value }}</td>
+            <td>{{ result.max_value }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

@@ -37,6 +37,26 @@
         <p>Количество столбцов: {{ dataset_description.total_cols }} ({{ dataset_description.total_cols_words }})</p>
         <p>Количество незаполненных ячеек: {{ dataset_description.num_empty_cells }} ({{ dataset_description.num_empty_cells_words }})</p>
         <p class="mb-5">Количество заполненных ячеек: {{ dataset_description.num_filled_cells }} ({{ dataset_description.num_filled_cells_words }})</p>
+         <h2 class="mt-5">Анализ столбца:</h2>
+        <form class="mt-1" action="analysis" method="POST">
+            <div class="form-group mb-3">
+                <label for="selected_condition" class="fw-semibold">Столбец с условием:</label>
+                <select class="form-select mt-1" aria-label="Default select example" name="selected_condition" id="selected_condition">
+                    {% for col in columns %}
+                    <option value="{{col}}">{{col}}</option>
+                    {% endfor %}
+                </select>
+                <label for="condition_value" class="fw-semibold mt-2">Значение условия:</label>
+                <input type="text" id="condition_value" name="condition_value" class="form-control mt-1" required placeholder="Введите условие">
+                <label for="selected_column" class="fw-semibold mt-2">Столбец для анализа:</label>
+                <select class="form-select mt-1" aria-label="Default select example" name="selected_column" id="selected_column">
+                    {% for col in columns %}
+                    <option value="{{col}}">{{col}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Анализ</button>
+        </form>
         <form class="text-center mb-5" action="/" method="GET">
         <button type="submit" class="btn btn-primary">Вернуться на главную страницу</button>
         </form>
