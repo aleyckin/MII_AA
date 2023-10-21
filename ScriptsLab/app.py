@@ -64,7 +64,7 @@ def data():
 
     return render_template(
         'data.html',
-        selected_data=selected_data.to_html(classes='table table-dark table-bordered table-hover'),
+        selected_data=selected_data.to_html(classes='table table-secondary table-bordered table-hover'),
         column_descriptions=column_descriptions,
         dataset_description=dataset_description
     )
