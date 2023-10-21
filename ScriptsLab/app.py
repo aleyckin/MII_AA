@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, send_file
 import pandas as pd
 from num2words import num2words
+from numpy.f2py.auxfuncs import throw_error
 
 app = Flask(__name__)
 
@@ -74,23 +75,27 @@ def data():
 def analysys():
     csv_data = load_data('neo.csv')
 
-    selected_columns = request.form.getlist('selected_columns')
-    selected_data = csv_data[selected_columns]
+    selected_condition = str(request.form['selected_condition'])
+    condition_value = str(request.form['condition_value'])
+    selected_column = str(request.form['selected_column'])
 
-    min_values = selected_data.min()
-    mean_values = selected_data.mean()
-    max_values = selected_data.max()
+    filtered_df = csv_data.groupby(selected_condition)
 
-    analysis_results = []
-    for col in selected_columns:
-        analysis_results.append({
-            'column_name': col,
-            'min_value': min_values[col],
-            'mean_value': mean_values[col],
-            'max_value': max_values[col]
-        })
+    if not (condition_value in filtered_df.groups):
+        return throw_error('Значения нету в колонке')
 
-    return render_template('analysis.html', analysis_results=analysis_results)
+    filtered_df = filtered_df.get_group(condition_value)
+
+    min_value = filtered_df[selected_column].min()
+    mean_value = filtered_df[selected_column].mean()
+    max_value = filtered_df[selected_column].max()
+
+    return render_template('analysis_data.html',
+                           min_value=round(min_value, 2),
+                           mean_value=round(mean_value, 2),
+                           max_value=round(max_value, 2),
+                           column_name=selected_column,
+                           filtered_df=filtered_df.to_html(classes='table table-dark table-bordered table-hover'))
 
 @app.route('/download', methods=['GET'])
 def download_file():
