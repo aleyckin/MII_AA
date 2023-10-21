@@ -3,24 +3,34 @@
 <head>
     <meta charset="utf-8">
     <title>Data Analysis</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
 </head>
 <body>
-    <h1>Data Analysis Results</h1>
-    <table border="1">
-        <tr>
-            <th>Column Name</th>
-            <th>Minimum Value</th>
-            <th>Mean Value</th>
-            <th>Maximum Value</th>
-        </tr>
-        {% for result in analysis_results %}
-        <tr>
-            <td>{{ result.column_name }}</td>
-            <td>{{ result.min_value }}</td>
-            <td>{{ result.mean_value }}</td>
-            <td>{{ result.max_value }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+    <div class="container mt-4">
+        <h2 class="mt-5">Анализ столбца</h2>
+        <table class="table table-secondary table-bordered table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Название</th>
+                    <th>Минимальное</th>
+                    <th>Среднее</th>
+                    <th>Максимум</th>
+                </tr>
+            </thead>
+            <tbody class="table-group-divider">
+                <tr>
+                    <td>{{ column_name }}</td>
+                    <td>{{ min_value }}</td>
+                    <td>{{ mean_value }}</td>
+                    <td>{{ max_value }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <form class="text-center mb-5" action="/" method="GET">
+        <button type="submit" class="btn btn-primary">Вернуться на главную страницу</button>
+        </form>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
 </body>
 </html>

@@ -1,12 +1,14 @@
 from flask import Flask, render_template, request, redirect, send_file
 import pandas as pd
 from num2words import num2words
-from numpy.f2py.auxfuncs import throw_error
 
 app = Flask(__name__)
 
 def load_data(filename):
     return pd.read_csv(filename)
+
+def throw_error(message):
+    return render_template('error_data.html', error_info=message)
 
 @app.route('/')
 def index():
@@ -65,7 +67,7 @@ def data():
 
     return render_template(
         'data.html',
-        selected_data=selected_data.to_html(classes='table table-dark table-bordered table-hover'),
+        selected_data=selected_data.to_html(classes='table table-secondary table-bordered table-hover'),
         column_descriptions=column_descriptions,
         dataset_description=dataset_description,
         columns=selected_data.columns
@@ -75,27 +77,26 @@ def data():
 def analysys():
     csv_data = load_data('neo.csv')
 
-    selected_condition = str(request.form['selected_condition'])
-    condition_value = str(request.form['condition_value'])
-    selected_column = str(request.form['selected_column'])
+    selected_column = request.form.get('selected_column')
+    hazardous_value = request.form['hazardous']
 
-    filtered_df = csv_data.groupby(selected_condition)
+    if selected_column is None:
+        return throw_error('Пустое значение столбца для анализа')
 
-    if not (condition_value in filtered_df.groups):
-        return throw_error('Значения нету в колонке')
+    filtered_df = csv_data[csv_data['hazardous'] == (hazardous_value == 'True')]
 
-    filtered_df = filtered_df.get_group(condition_value)
+    try:
+        min_value = filtered_df[selected_column].min()
+        mean_value = filtered_df[selected_column].mean()
+        max_value = filtered_df[selected_column].max()
+    except KeyError:
+        return throw_error('Выбранный столбец не существует в данных')
 
-    min_value = filtered_df[selected_column].min()
-    mean_value = filtered_df[selected_column].mean()
-    max_value = filtered_df[selected_column].max()
-
-    return render_template('analysis_data.html',
-                           min_value=round(min_value, 2),
-                           mean_value=round(mean_value, 2),
-                           max_value=round(max_value, 2),
-                           column_name=selected_column,
-                           filtered_df=filtered_df.to_html(classes='table table-dark table-bordered table-hover'))
+    return render_template('analysis.html',
+                           min_value=round(min_value, 5),
+                           mean_value=round(mean_value, 5),
+                           max_value=round(max_value, 5),
+                           column_name=selected_column)
 
 @app.route('/download', methods=['GET'])
 def download_file():
