@@ -24,11 +24,12 @@
                 <label for="end_col" class="fw-semibold">Конечная колонка:</label>
                 <input type="number" id="end_col" name="end_col" class="form-control" required placeholder="от 1 до {{max_col}}">
             </div>
+
             <div class="text-center">
                 <button type="submit" class="btn btn-success">Вывести данные</button>
             </div>
         </form>
-        <form class="text-center" action="/download" method="GET">
+        <form class="text-center mb-3" action="/download" method="GET">
             <button type="submit" class="btn btn-primary">Скачать csv-файл</button>
         </form>
     </div>

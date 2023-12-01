@@ -1,6 +1,10 @@
-from flask import Flask, render_template, request, redirect, send_file
+from flask import Flask, render_template, request, redirect, send_file, Response, session
+import numpy as np
 import pandas as pd
 from num2words import num2words
+import matplotlib.pyplot as plt
+from io import BytesIO
+import base64
 
 app = Flask(__name__)
 
@@ -15,7 +19,8 @@ def index():
     csv_data = load_data('neo.csv')
     return render_template('index.html',
                            max_row=len(csv_data),
-                           max_col=len(csv_data.columns))
+                           max_col=len(csv_data.columns),
+                           columns=csv_data.columns)
 
 @app.route('/data', methods=['POST'])
 def data():
@@ -73,6 +78,68 @@ def data():
         columns=selected_data.columns
     )
 
+@app.route('/diagram_data', methods=['POST'])
+def diagram_data():
+    csv_data = load_data('neo.csv')
+    augmented_data = augment_data(csv_data)
+
+    # Получение выбранного столбца и значения 'True' или 'False'
+    selected_column2 = request.form.get('selected_column2')
+    hazardous_value2 = request.form.get('hazardous2')
+
+    # Преобразование типа данных в DataFrame
+    csv_data['hazardous'] = csv_data['hazardous'].astype(str)
+    augmented_data['hazardous'] = augmented_data['hazardous'].astype(str)
+
+    filtered_df = csv_data[csv_data['hazardous'] == hazardous_value2]
+    filtered_df2 = augmented_data[augmented_data['hazardous'] == hazardous_value2]
+
+    # Получаем значения min, mean, max из данных
+    min_value = filtered_df[selected_column2].min()
+    mean_value = filtered_df[selected_column2].mean()
+    max_value = filtered_df[selected_column2].max()
+
+    min_value2 = filtered_df2[selected_column2].min()
+    mean_value2 = filtered_df2[selected_column2].mean()
+    max_value2 = filtered_df2[selected_column2].max()
+
+    plt.figure(figsize=(16, 6))
+
+    # Гистограмма для Original Data
+    plt.subplot(1, 2, 1)
+    plt.hist(filtered_df[selected_column2].dropna(), bins=20, color='blue', alpha=0.7,
+             label=f'{selected_column2} (Original Data)')
+    plt.text(0.25, -0.10, f'Min: {min_value:.2f}', color='blue', horizontalalignment='center',
+             verticalalignment='center', transform=plt.gca().transAxes)
+    plt.text(0.5, -0.10, f'Mean: {mean_value:.2f}', color='green', horizontalalignment='center',
+             verticalalignment='center', transform=plt.gca().transAxes)
+    plt.text(0.75, -0.10, f'Max: {max_value:.2f}', color='red', horizontalalignment='center', verticalalignment='center',
+             transform=plt.gca().transAxes)
+    plt.title(f'Distribution of {selected_column2} (Original Data)')
+    plt.ylabel('Frequency')
+    plt.legend()
+
+    # Гистограмма для Augmented Data
+    plt.subplot(1, 2, 2)
+    plt.hist(filtered_df2[selected_column2].dropna(), bins=20, color='orange', alpha=0.7,
+             label=f'{selected_column2} (Augmented Data)')
+    plt.text(0.25, -0.10, f'Min: {min_value2:.2f}', color='blue', horizontalalignment='center',
+             verticalalignment='center', transform=plt.gca().transAxes)
+    plt.text(0.5, -0.10, f'Mean: {mean_value2:.2f}', color='green', horizontalalignment='center',
+             verticalalignment='center', transform=plt.gca().transAxes)
+    plt.text(0.75, -0.10, f'Max: {max_value2:.2f}', color='red', horizontalalignment='center',
+             verticalalignment='center', transform=plt.gca().transAxes)
+    plt.title(f'Distribution of {selected_column2} (Augmented Data)')
+    plt.ylabel('Frequency')
+    plt.legend()
+
+    plt.show()
+
+    return render_template('index.html',
+                           max_row=len(csv_data),
+                           max_col=len(csv_data.columns),
+                           columns=csv_data.columns)
+
 @app.route('/analysis', methods=['POST'])
 def analysys():
     csv_data = load_data('neo.csv')
@@ -97,6 +164,39 @@ def analysys():
                            mean_value=round(mean_value, 5),
                            max_value=round(max_value, 5),
                            column_name=selected_column)
+
+def augment_data(data):
+    augmented_data = data.copy()
+
+    # Увеличение размера данных на 10%
+    num_rows_to_add = int(len(augmented_data) * 0.1)
+    new_rows = pd.DataFrame()
+
+    # Усреднение числовых столбцов
+    numeric_columns = augmented_data.select_dtypes(include='number').columns
+    for col in numeric_columns:
+        mean_value = augmented_data[col].mean()
+        # Код для добавления случайного шума удален
+        new_values = [mean_value] * num_rows_to_add  # Теперь добавляем только усредненные значения
+
+        new_rows[col] = new_values
+
+    # Заполнение текстовых и логических (bool) столбцов
+    other_columns = augmented_data.select_dtypes(include=['object', 'bool']).columns
+    for col in other_columns:
+        if pd.api.types.is_bool_dtype(augmented_data[col]):
+            # Для логических (bool) столбцов добавляем случайные значения True/False
+            new_values = np.random.choice([True, False], size=num_rows_to_add)
+        else:
+            # Для текстовых столбцов добавляем наиболее часто встречающееся значение
+            most_frequent_value = augmented_data[col].mode().iloc[0]
+            new_values = [most_frequent_value] * num_rows_to_add
+
+        new_rows[col] = new_values
+
+    augmented_data = pd.concat([augmented_data, new_rows], ignore_index=False)
+
+    return augmented_data
 
 @app.route('/download', methods=['GET'])
 def download_file():
