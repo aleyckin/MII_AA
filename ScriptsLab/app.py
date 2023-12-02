@@ -3,8 +3,8 @@ import numpy as np
 import pandas as pd
 from num2words import num2words
 import matplotlib.pyplot as plt
-from io import BytesIO
-import base64
+
+from ScriptsLab.BloomFilter import BloomFilter
 
 app = Flask(__name__)
 
@@ -176,7 +176,7 @@ def augment_data(data):
     numeric_columns = augmented_data.select_dtypes(include='number').columns
     for col in numeric_columns:
         mean_value = augmented_data[col].mean()
-        # Код для добавления случайного шума удален
+
         new_values = [mean_value] * num_rows_to_add  # Теперь добавляем только усредненные значения
 
         new_rows[col] = new_values
@@ -197,6 +197,46 @@ def augment_data(data):
     augmented_data = pd.concat([augmented_data, new_rows], ignore_index=False)
 
     return augmented_data
+
+@app.route('/bloomFilter', methods=['POST'])
+def bloomFilter():
+    num_hashing = int(request.form['hashNum_textbox'])
+    word = str(request.form['words_textbox'])
+
+    url1 = 'https://www.kaggle.com/datasets/fedesoriano/stroke-prediction-dataset '
+    url2 = 'https://www.kaggle.com/datasets/sameepvani/nasa-nearest-earth-objects'
+    url3 = 'https://www.kaggle.com/datasets/surajjha101/forbes-billionaires-data-preprocessed'
+
+    columns_1 = ['id', 'gender', 'age', 'hypertension', 'heart_desease', 'ever_married', 'work_type', 'Residence_type', 'avg_glucose_level', 'bmi']
+    columns_2 = ['id', 'name', 'est_diameter_min', 'est_diameter_max', 'relative_velocity', 'miss_distance', 'orbiting_body', 'sentry_object', 'absolute_magnitude', 'hazardous']
+    columns_3 = ['Rank', 'Name', 'Networth', 'Age', 'Country', 'Source', 'Industry']
+
+    bloomFilter1 = BloomFilter(1000, num_hashing)
+    bloomFilter2 = BloomFilter(1000, num_hashing)
+    bloomFilter3 = BloomFilter(1000, num_hashing)
+
+    bloomFilter1.add_to_filter(columns_1)
+    bloomFilter2.add_to_filter(columns_2)
+    bloomFilter3.add_to_filter(columns_3)
+
+    IsHas1 = bloomFilter1.check_is_not_in_filter(word)
+    IsHas2 = bloomFilter2.check_is_not_in_filter(word)
+    IsHas3 = bloomFilter3.check_is_not_in_filter(word)
+
+    paths = []
+
+    if (not IsHas1):
+        paths.append(url1)
+    if (not IsHas2):
+        paths.append(url2)
+    if (not IsHas3):
+        paths.append(url3)
+
+    if len(paths) == 1:
+        return redirect(paths[0])
+
+    return render_template('bloomFilter.html',
+                           paths=paths)
 
 @app.route('/download', methods=['GET'])
 def download_file():
