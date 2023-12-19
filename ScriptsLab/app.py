@@ -6,13 +6,10 @@ import numpy as np
 import pandas as pd
 from num2words import num2words
 import matplotlib.pyplot as plt
-from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
-from sklearn import metrics
-from sklearn.preprocessing import StandardScaler
 
 from ScriptsLab.BloomFilter import BloomFilter
+from ScriptsLab.DecisionTree import DecisionTree
 from ScriptsLab.PairedRegression import PairedRegression
 
 app = Flask(__name__)
@@ -290,6 +287,62 @@ def regression():
                            graph_url = graph_url)
 
 
+@app.route('/decision_tree', methods=['GET'])
+def decision_tree():
+    # Загрузка данных
+    csv_data = load_data('neo.csv')
+
+    df = pd.DataFrame(csv_data)
+
+    # Выбираем нужные признаки (features)
+    features = ['relative_velocity', 'est_diameter_min', 'absolute_magnitude']
+
+    # Выбираем данные для обучения
+    train_data = df[features]
+
+    train_data = train_data.iloc[:35]
+
+    train_df = train_data.iloc[:25]
+    test_df = train_data.iloc[25:35]
+
+    train_array = []
+    test_array = []
+
+    for i in range(len(train_df)):
+        ind = i
+        train_array.append({})
+        train_array[i]["relative_velocity"] = train_df["relative_velocity"].iloc[ind]
+        train_array[i]["est_diameter_min"] = train_df["est_diameter_min"].iloc[ind]
+        train_array[i]["absolute_magnitude"] = train_df["absolute_magnitude"].iloc[ind]
+
+    for i in range(len(test_df)):
+        ind = i
+        test_array.append({})
+        test_array[i]["relative_velocity"] = test_df["relative_velocity"].iloc[ind]
+        test_array[i]["est_diameter_min"] = test_df["est_diameter_min"].iloc[ind]
+        test_array[i]["absolute_magnitude"] = test_df["absolute_magnitude"].iloc[ind]
+
+    # Задаем дерево решений
+    dt = DecisionTree(4, 5, train_array)
+
+    percent = 0
+
+    for elem in test_array:
+        res = dt.getAns(elem)
+
+        print("Expected: ", end="")
+        print(elem["absolute_magnitude"], end="")
+        print("  Res: ", end="")
+        print(res)
+
+        currPercent = abs(res - elem["absolute_magnitude"]) / elem["absolute_magnitude"]
+        currPercent *= 100
+        percent += currPercent
+
+    percent /= 10
+
+    print("Percent: ", percent)
+    return "Code executed successfully!"
 
 @app.route('/download', methods=['GET'])
 def download_file():
