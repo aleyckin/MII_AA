@@ -1,10 +1,19 @@
+import base64
+from io import BytesIO
+
 from flask import Flask, render_template, request, redirect, send_file, Response, session
 import numpy as np
 import pandas as pd
 from num2words import num2words
 import matplotlib.pyplot as plt
+from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn import metrics
+from sklearn.preprocessing import StandardScaler
 
 from ScriptsLab.BloomFilter import BloomFilter
+from ScriptsLab.PairedRegression import PairedRegression
 
 app = Flask(__name__)
 
@@ -237,6 +246,50 @@ def bloomFilter():
 
     return render_template('bloomFilter.html',
                            paths=paths)
+
+@app.route('/regression', methods=['POST'])
+def regression():
+
+    # Загрузка данных
+    csv_data = load_data('neo.csv')
+
+    big_data = csv_data.sample(frac=0.99)
+    small_data = csv_data.drop(big_data.index)
+
+    x_column = 'relative_velocity'
+    y_column = 'est_diameter_min'
+
+    # Создание и обучение модели линейной регрессии
+    model = PairedRegression(big_data, x_column, y_column)
+
+    plt.figure(figsize=(12, 10))
+    plt.subplot(2, 1, 1)
+    plt.scatter(big_data[x_column].values, big_data[y_column].values, alpha=0.4)
+    plt.plot(big_data[x_column].values, model.predict(big_data[x_column].values), color='red', linewidth=3)
+    plt.xlabel('Скорость')
+    plt.ylabel('Размер')
+    plt.title('Линейная регрессия на 99%')
+
+    plt.subplot(2, 1, 2)
+    plt.scatter(small_data[x_column].values, small_data[y_column].values, alpha=0.4)
+    plt.plot(small_data[x_column].values, model.predict(small_data[x_column].values), color='red', linewidth=3)
+    plt.xlabel('Скорость')
+    plt.ylabel('Размер')
+    plt.title('Линейная регрессия на 1%')
+
+    # Регулировка интервала между графиками
+    plt.subplots_adjust(hspace=0.75)
+
+    img = BytesIO()
+    plt.savefig(img, format='png')
+    img.seek(0)
+
+    graph_url = base64.b64encode(img.read()).decode()
+
+    return render_template('paired_regression.html',
+                           graph_url = graph_url)
+
+
 
 @app.route('/download', methods=['GET'])
 def download_file():
