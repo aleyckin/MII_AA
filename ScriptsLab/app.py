@@ -378,17 +378,17 @@ def cluster():
     X = np.column_stack((relative_velocity, est_diameter_min))
 
     # Указываем количество кластеров
-    k = 3
+    k = 4
 
     # Применяем алгоритм k-средних
     labels, centroids = kmeans(X, k)
 
         # Визуализация точек данных и центроидов
     plt.scatter(X[:, 0], X[:, 1], c=labels, alpha=0.4, cmap='viridis', marker='o', edgecolors='k')
-    plt.scatter(centroids[:, 0], centroids[:, 1], c='red', marker='X', s=200, label='Centroids')
-    plt.xlabel('Relative Velocity')
-    plt.ylabel('Estimated Diameter Min')
-    plt.title('K-Means Clustering')
+    plt.scatter(centroids[:, 0], centroids[:, 1], c='red', marker='X', s=200, label='Центроиды')
+    plt.xlabel('Скорость')
+    plt.ylabel('Размер')
+    plt.title('K-Means Кластеризация')
     plt.legend()
 
     img = BytesIO()
