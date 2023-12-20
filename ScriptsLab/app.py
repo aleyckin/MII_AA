@@ -342,7 +342,63 @@ def decision_tree():
     percent /= 10
 
     print("Percent: ", percent)
-    return "Code executed successfully!"
+    return "Дерево построено!"
+
+
+def kmeans(X, k=2, max_iters=100):
+    # Инициализация центроидов случайным образом
+    centroids = X[np.random.choice(range(len(X)), k, replace=False)]
+
+    for _ in range(max_iters):
+        # Распределение точек по ближайшему центроиду
+        labels = np.argmin(np.linalg.norm(X - centroids[:, np.newaxis], axis=2), axis=0)
+
+        # Обновление центроидов
+        new_centroids = np.array([X[labels == i].mean(axis=0) for i in range(k)])
+
+        # Проверка на сходимость
+        if np.all(centroids == new_centroids):
+            break
+
+        centroids = new_centroids
+
+    return labels, centroids
+
+
+@app.route('/cluster', methods=['GET'])
+def cluster():
+    # Загрузка данных
+    csv_data = load_data('neo.csv')
+
+    # Получаем данные о скорости и размере
+    relative_velocity = np.array(csv_data['relative_velocity'])
+    est_diameter_min = np.array(csv_data['est_diameter_min'])
+
+    # Объединяем данные в один массив
+    X = np.column_stack((relative_velocity, est_diameter_min))
+
+    # Указываем количество кластеров
+    k = 3
+
+    # Применяем алгоритм k-средних
+    labels, centroids = kmeans(X, k)
+
+        # Визуализация точек данных и центроидов
+    plt.scatter(X[:, 0], X[:, 1], c=labels, alpha=0.4, cmap='viridis', marker='o', edgecolors='k')
+    plt.scatter(centroids[:, 0], centroids[:, 1], c='red', marker='X', s=200, label='Centroids')
+    plt.xlabel('Relative Velocity')
+    plt.ylabel('Estimated Diameter Min')
+    plt.title('K-Means Clustering')
+    plt.legend()
+
+    img = BytesIO()
+    plt.savefig(img, format='png')
+    img.seek(0)
+
+    graph_url = base64.b64encode(img.read()).decode()
+
+    return render_template('clustering.html',
+                           graph_url=graph_url)
 
 @app.route('/download', methods=['GET'])
 def download_file():
