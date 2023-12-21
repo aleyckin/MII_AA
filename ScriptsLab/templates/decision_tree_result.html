@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decision Tree Result</title>
+</head>
+<body>
+    <center>
+        <h1>Decision Tree Result</h1>
+
+        <h2>Results:</h2>
+        <table border="1">
+            <tr>
+                <th>Expected</th>
+                <th>Result</th>
+                <th>Percent Difference</th>
+            </tr>
+            {% for result in results %}
+            <tr>
+                <td>{{ result.expected }}</td>
+                <td>{{ result.result }}</td>
+                <td>{{ result.percent }}%</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <h2>Average Percent Difference:</h2>
+        <p>{{ average_percent }}%</p>
+    </center>
+</body>
+</html>

@@ -12,6 +12,7 @@ class PairedRegression:
         X = data[column1].values
         Y = data[column2].values
 
+        # Защита от пустых ячеек данных
         X = X[~np.isnan(X.astype(float))]
         Y = Y[~np.isnan(Y.astype(float))]
 
@@ -25,6 +26,7 @@ class PairedRegression:
         sumXX = sum(X * X)
         n = len(X)
 
+        # Получаем коэффициенты для построения прямой
         self.b1 = (sumXY - (sumX * sumY) / n) / (sumXX - sumX * sumX / n)
         self.b0 = (sumY - self.b1 * sumX) / n
 

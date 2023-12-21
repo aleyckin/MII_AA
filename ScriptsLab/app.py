@@ -325,24 +325,21 @@ def decision_tree():
     # Задаем дерево решений
     dt = DecisionTree(4, 5, train_array)
 
-    percent = 0
+    results = []
 
     for elem in test_array:
         res = dt.getAns(elem)
+        expected = elem["absolute_magnitude"]
+        curr_percent = abs(res - expected) / expected * 100
+        results.append({
+            "expected": expected,
+            "result": res,
+            "percent": curr_percent
+        })
 
-        print("Expected: ", end="")
-        print(elem["absolute_magnitude"], end="")
-        print("  Res: ", end="")
-        print(res)
+    average_percent = sum(result["percent"] for result in results) / len(results)
 
-        currPercent = abs(res - elem["absolute_magnitude"]) / elem["absolute_magnitude"]
-        currPercent *= 100
-        percent += currPercent
-
-    percent /= 10
-
-    print("Percent: ", percent)
-    return "Дерево построено!"
+    return render_template('decision_tree_result.html', results=results, average_percent=average_percent)
 
 
 def kmeans(X, k=2, max_iters=100):
@@ -388,6 +385,7 @@ def cluster():
     plt.scatter(centroids[:, 0], centroids[:, 1], c='red', marker='X', s=200, label='Центроиды')
     plt.xlabel('Скорость')
     plt.ylabel('Размер')
+    plt.ylim(0, 10)
     plt.title('K-Means Кластеризация')
     plt.legend()
 
